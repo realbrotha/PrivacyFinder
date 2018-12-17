@@ -38,3 +38,19 @@
 v1.0 : 초기 작업 모델 </br>
 
 ## How to ??
+
+> 파일 실행 -> 개인정보가 있는 폴더 선택 -> 검사진행 </br>
+
+[메인화면]
+
+![main](https://user-images.githubusercontent.com/28824715/50061067-4ba5c280-01df-11e9-8834-0b4948217013.jpg)
+
+[검사 진행 후]
+
+![after](https://user-images.githubusercontent.com/28824715/50061069-4ba5c280-01df-11e9-96bb-cb873300ea2a.jpg)
+
+[자세히]
+
+![after](https://user-images.githubusercontent.com/28824715/50061070-4ba5c280-01df-11e9-9fe6-001f53628b1a.JPG)
+
+
