@@ -1,16 +1,13 @@
-
-// PrivacyFinderDlg.h : header file
-//
-
 #pragma once
+
 #include "FolderTreeCtrl.h"
+#include "PatternParser.h"
+
 #include <vector>
 #include <deque>
-#include "afxcmn.h"
-#include "afxwin.h"
 #include <list>
-// CPrivacyFinderDlg dialog
-#include "PatternParser.h"
+#include <atomic>
+#include <thread>
 
 typedef struct DETECT_INFO_
 {
@@ -63,7 +60,7 @@ public:
     std::list<DETECT_INFO> detectedInfoList; // TODO : 구조를 잘못 잡은듯 하다. 시간있을때 싹 고쳐야됨 
     std::list<FILE_INFO> fileInfoList; // TODO : 동일
 
-	BOOL timeThreadFlag; //todo : 타임종료용 timerThread 자체를 이렇게 만들필요가 없음 수정필요
+	std::atomic<bool> timeThreadFlag; // todo : 상수 카운트 방식 or 시간 연산 방식 둘중 하나 고를것 
 
     void SearchFileFromTop();
     BOOL SearchFileDetails(CString& path);

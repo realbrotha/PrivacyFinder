@@ -6,9 +6,8 @@
 #include "FileAnaylze.h"
 #include "DocumentParser.h"
 #include "PopUpDialog.h"
-
-#include <list>
 #include "TimeDate.h"
+
 CPrivacyFinderDlg *pThis = NULL;
 
 class CAboutDlg : public CDialogEx
@@ -42,7 +41,9 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 CPrivacyFinderDlg::CPrivacyFinderDlg(CWnd* pParent /*=NULL*/)
-	: CDialogEx(IDD_PRIVACY_DIALOG, pParent)
+	: CDialogEx(IDD_PRIVACY_DIALOG, pParent),
+	  fileSearchEvent (NULL), 
+	  timeThreadFlag(false)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -99,6 +100,7 @@ BOOL CPrivacyFinderDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// Set small icon
 
 	pThis = this;
+
     InitializeCriticalSection(&crtSection);
 
 	folderTree.TreeInitialize();      // TREE 초기화 
@@ -177,8 +179,6 @@ void CPrivacyFinderDlg::OnBnClickedStartScan()
 
 void CPrivacyFinderDlg::StartPolicyFinder()
 {
-    timeThreadFlag = TRUE;
-
     detailScanFilePath.clear();
 
     fileSearchEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -188,25 +188,44 @@ void CPrivacyFinderDlg::StartPolicyFinder()
     ::_beginthread(PrivacyScanThread, 0, this);
 }
 
-void CPrivacyFinderDlg::TimerThread(void* arg) // todo : 생각해보니 시간으로 처리할 필요가 없다. 1씩 증감시키면서 값을 시분 초 단위로 표현하면 됨 ..
+void CPrivacyFinderDlg::TimerThread(void* arg) // Todo :시간으로 처리하는것과 단순 Count 하는 것 둘중하나 선택 할것
 {
 	CPrivacyFinderDlg *dlg = reinterpret_cast<CPrivacyFinderDlg *>(arg);
 
+	/* >>>> 시간 계산 방식
 	TimeDate startTime;
 	startTime.SetCurrentTime();
-	int start = (startTime.Year() * 10000) + (startTime.Month() * 100) + startTime.Day();
-	while (dlg->timeThreadFlag)		// todo : not atomic .. 아토믹으로 바꿀것
+	int start = startTime.Hour() * 3600 + startTime.Min() * 60 + startTime.Sec();
+	*/ 
+	if (!dlg->timeThreadFlag.exchange(true))
 	{
-		TimeDate currentTime;
-		currentTime.SetCurrentTime();
-		int current = (currentTime.Year() * 10000) + (currentTime.Month() * 100) + currentTime.Day();
-		int diffTime = current - start;
+		__int32 runningTime = 0;
+		while (dlg->timeThreadFlag)
+		{
+			// >>>> 상수 연산 방식
+			CString	scanTime = _T("");
+			scanTime.Format(_T("%02d:%02d:%02d"), (runningTime / 3600), (runningTime / 60 % 60), (runningTime % 60));
+			dlg->scanTime_static.SetWindowText(scanTime);
 
-		CString	scanTime = _T(""); //검사 시간
-		scanTime.Format(_T("%02d:%02d:%02d"), (diffTime / 3600), (diffTime / 60 % 60), (diffTime % 60));
-		dlg->scanTime_static.SetWindowText(scanTime);
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			++runningTime;
+			// <<<< 상수 연산 방식
+			/* >>>> 시간 계산 방식
+			
+			TimeDate currentTime;
+			currentTime.SetCurrentTime();
+			
+			int current = currentTime.Hour() * 3600 + currentTime.Min() * 60 + currentTime.Sec();
+			int diffTime = current - start;
+			
+			CString	scanTime = _T(""); //검사 시간
+			scanTime.Format(_T("%02d:%02d:%02d"), (diffTime / 3600), (diffTime / 60 % 60), (diffTime % 60));
+			dlg->scanTime_static.SetWindowText(scanTime);
+
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			*/
+		}
 	}
-
 	return ;
 }
 
@@ -264,7 +283,8 @@ void CPrivacyFinderDlg::PrivacyScanThread(void* arg)  // 개인정보 검출 쓰레드
 	CPrivacyFinderDlg *dlg = reinterpret_cast<CPrivacyFinderDlg *>(arg);
 
 	dlg->PrivacyScan();
-	dlg->timeThreadFlag = FALSE;
+	
+	dlg->timeThreadFlag.exchange(false);
 	
     return;
 }

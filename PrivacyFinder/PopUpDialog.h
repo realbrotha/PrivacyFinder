@@ -1,6 +1,6 @@
 #pragma once
-#include "afxcmn.h"
 
+#include "afxcmn.h"
 
 // PopUpDialog 대화 상자입니다.
 

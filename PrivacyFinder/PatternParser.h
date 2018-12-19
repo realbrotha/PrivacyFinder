@@ -1,5 +1,7 @@
 #pragma once
 
+#include <list>
+
 typedef struct PATTERN_INFO_
 {
 	CString szPattern;
