@@ -8,10 +8,8 @@
 #include "PopUpDialog.h"
 
 #include <list>
-
+#include "TimeDate.h"
 CPrivacyFinderDlg *pThis = NULL;
-
-#define SCAN_TIMER_SET			1
 
 class CAboutDlg : public CDialogEx
 {
@@ -155,23 +153,6 @@ HCURSOR CPrivacyFinderDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-void CPrivacyFinderDlg::OnTimer(UINT_PTR nIDEvent)
-{
-	// TODO: 타이머가 이상하게 돈다. Sync를 맞춰야함
-	switch (nIDEvent)
-	{
-
-	case SCAN_TIMER_SET:
-		KillTimer(nIDEvent);
-        CString	scanTime; //검사 시간
-		scanTime.Format(_T("%02d:%02d:%02d"), m_nHour, m_nMin, m_nSec);
-		scanTime_static.SetWindowText(scanTime);
-		SetTimer(nIDEvent, 100, NULL);
-		break;
-	}
-
-	CDialogEx::OnTimer(nIDEvent);
-}
 
 void CPrivacyFinderDlg::OnBnClickedStartScan()
 {
@@ -207,27 +188,23 @@ void CPrivacyFinderDlg::StartPolicyFinder()
     ::_beginthread(PrivacyScanThread, 0, this);
 }
 
-void CPrivacyFinderDlg::TimerThread(void* arg) // todo : 왜이렇게 했을까 .... 시간을 이렇게 구할 필요없다. TimerThread에서 UI단으로 직접 쏴주는게 현명함.
+void CPrivacyFinderDlg::TimerThread(void* arg) // todo : 생각해보니 시간으로 처리할 필요가 없다. 1씩 증감시키면서 값을 시분 초 단위로 표현하면 됨 ..
 {
 	CPrivacyFinderDlg *dlg = reinterpret_cast<CPrivacyFinderDlg *>(arg);
 
-	dlg->m_nOldTime = 0;
-	dlg->m_nCurTime = 0;
-	dlg->m_nEndTime = 0;
-	dlg->m_nBackupTime = 0;
-
-    dlg->m_nOldTime = static_cast<INT_PTR>(time(NULL));
-
-	dlg->SetTimer(SCAN_TIMER_SET, 100, NULL);
-
-	while (dlg->timeThreadFlag)
+	TimeDate startTime;
+	startTime.SetCurrentTime();
+	int start = (startTime.Year() * 10000) + (startTime.Month() * 100) + startTime.Day();
+	while (dlg->timeThreadFlag)		// todo : not atomic .. 아토믹으로 바꿀것
 	{
-		dlg->m_nCurTime = static_cast<INT_PTR>(time(NULL));
-		dlg->m_nEndTime = (dlg->m_nCurTime + dlg->m_nBackupTime) - dlg->m_nOldTime;
+		TimeDate currentTime;
+		currentTime.SetCurrentTime();
+		int current = (currentTime.Year() * 10000) + (currentTime.Month() * 100) + currentTime.Day();
+		int diffTime = current - start;
 
-		dlg->m_nHour = dlg->m_nEndTime / 3600;
-		dlg->m_nMin = dlg->m_nEndTime / 60 % 60;
-		dlg->m_nSec = dlg->m_nEndTime % 60;
+		CString	scanTime = _T(""); //검사 시간
+		scanTime.Format(_T("%02d:%02d:%02d"), (diffTime / 3600), (diffTime / 60 % 60), (diffTime % 60));
+		dlg->scanTime_static.SetWindowText(scanTime);
 	}
 
 	return ;

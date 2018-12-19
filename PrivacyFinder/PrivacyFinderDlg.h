@@ -45,8 +45,7 @@ protected:
 	afx_msg void OnItemexpandingTree1(NMHDR *pNMHDR, LRESULT *pResult); // 리스트 expanding
 	afx_msg void OnClickTree1(NMHDR *pNMHDR, LRESULT *pResult); // 리스트 클릭
 	afx_msg void OnBnClickedStartScan();   //검사 시작 버튼 
-	afx_msg void OnTimer(UINT_PTR nIDEvent);
-    afx_msg void OnNMRClickLick(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnNMRClickLick(NMHDR *pNMHDR, LRESULT *pResult);
     afx_msg void OnListItemClear();
     afx_msg void OnListListClear();
     afx_msg void OnListViewDetails();
@@ -63,16 +62,6 @@ public:
 
     std::list<DETECT_INFO> detectedInfoList; // TODO : 구조를 잘못 잡은듯 하다. 시간있을때 싹 고쳐야됨 
     std::list<FILE_INFO> fileInfoList; // TODO : 동일
-
-    // TODO : 시간정보 또한 이렇게 처리할 필요가 없다.
-	INT_PTR	m_nOldTime;
-	INT_PTR	m_nCurTime;
-	INT_PTR	m_nEndTime;
-	INT_PTR m_nBackupTime;
-
-	INT_PTR m_nHour;
-	INT_PTR m_nMin;
-	INT_PTR m_nSec;
 
 	BOOL timeThreadFlag; //todo : 타임종료용 timerThread 자체를 이렇게 만들필요가 없음 수정필요
 
